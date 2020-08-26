@@ -95,7 +95,7 @@ def init_bot():
             # Get Channel videos
 
             videos = get_channel_items(channel_id)
-            for video in videos:
+            for video in reversed(videos):
                 if video['id']['videoId'] not in logged_ids:
                     video_url = 'https://www.youtube.com/watch?v=' \
                         + video['id']['videoId']
