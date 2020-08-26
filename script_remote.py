@@ -104,7 +104,7 @@ def init_bot():
                     reddit.subreddit('lazonacero').submit(title=title,
                             url=video_url)
                     update_file(LOG_FILE, video['id']['videoId'])
-        except Exception, e:
+        except Exception as e:
             print(e)
             continue
 
