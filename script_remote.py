@@ -1,51 +1,54 @@
-"""Takes the last 3 user videos and posts them to Reddit."""
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""Takes the last 3 user videos from channels and posts them to Reddit."""
+
 import os
-import praw
 import requests
+import praw
+
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
+USERNAME = os.environ['USERNAME']
+PASSWORD = os.environ['PASSWORD']
+
+_KEY = os.environ['_KEY']
+
+LOG_FILE = './processed_ids.txt'
+CHANNEL_IDS_FILE = './channel_ids.txt'
 
 
-CLIENT_ID = os.environ["CLIENT_ID"]
-CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-USERNAME = os.environ["USERNAME"]
-PASSWORD = os.environ["PASSWORD"]
-
-_KEY = os.environ["_KEY"]
-
-
-LOG_FILE = "./processed_ids.txt"
-
-
-def load_log():
+def load_file(file):
     """Loads the log file and creates it if it doesn't exist.
-
+     Parameters
+    ----------
+    file : str
+        The file to read
     Returns
     -------
     list
-        A list of ids.
-
+        A list of urls.
     """
 
     try:
-        with open(LOG_FILE, "r", encoding="utf-8") as temp_file:
+        with open(file, 'r', encoding='utf-8') as temp_file:
             return temp_file.read().splitlines()
-
     except Exception:
-        with open(LOG_FILE, "w", encoding="utf-8") as temp_file:
+        with open(LOG_FILE, 'w', encoding='utf-8') as temp_file:
             return []
 
 
-def update_log(video_id):
+def update_file(file, data):
     """Updates the log file.
-
     Parameters
     ----------
-    video_id : str
-        The video_id to log.
-
+    file : str
+        The file to write down.
+    data : str
+        The data to log.
     """
 
-    with open(LOG_FILE, "a", encoding="utf-8") as temp_file:
-        temp_file.write(video_id + "\n")
+    with open(file, 'a', encoding='utf-8') as temp_file:
+        temp_file.write(data + '\n')
 
 
 def get_channel_items(channel):
@@ -57,14 +60,17 @@ def get_channel_items(channel):
         A list of videos elements.
 
     """
-    api_url = "https://www.googleapis.com/youtube/v3/search?channelId={}&part=snippet&maxResults=3&order=date&key={}".format(channel, _KEY)
+
+    api_url = \
+        'https://www.googleapis.com/youtube/v3/search?channelId={}&part=snippet&maxResults=3&order=date&key={}'.format(channel,
+            _KEY)
     try:
         with requests.get(api_url) as response:
-            print("request OK")
+            print('request OK')
             data = response.json()
             return data['items']
     except:
-        print("Error during request")
+        print('Error during request')
         exit()
 
 
@@ -72,24 +78,39 @@ def init_bot():
     """Reads the RSS feed."""
 
     # We create the Reddit instance.
-    reddit = praw.Reddit(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, username=USERNAME, password=PASSWORD, user_agent="testscript by /u/larry3000bot")
 
-    # Get videos from youtube api
-    channel_id = 'UCwi7FK3XDDwhioq1hV8Zmqg'
-    videos = get_channel_items(channel_id)
-    logged_ids = load_log()
+    reddit = praw.Reddit(client_id=CLIENT_ID,
+                         client_secret=CLIENT_SECRET,
+                         username=USERNAME, password=PASSWORD,
+                         user_agent='testscript by /u/larry3000bot')
 
-    for video in videos:
-        if video['id']['videoId'] not in logged_ids:
-            video_url = "https://www.youtube.com/watch?v="+video['id']['videoId']
-            title = video['snippet']['title']
-            reddit.subreddit('lazonacero').submit(
-                    title=title, url=video_url)
-            update_log(video['id']['videoId'])
+    # Get channels list and logged ids
 
-    print("end of script")
+    logged_ids = load_file(LOG_FILE)
+    channel_ids = load_file(CHANNEL_IDS_FILE)
+
+    for channel_id in channel_ids:
+        try:
+
+            # Get Channel videos
+
+            videos = get_channel_items(channel_id)
+            for video in videos:
+                if video['id']['videoId'] not in logged_ids:
+                    video_url = 'https://www.youtube.com/watch?v=' \
+                        + video['id']['videoId']
+                    title = video['snippet']['title']
+                    print("posting {}".format(video_url))
+                    reddit.subreddit('lazonacero').submit(title=title,
+                            url=video_url)
+                    update_file(LOG_FILE, video['id']['videoId'])
+        except Exception, e:
+            print(e)
+            continue
+
+    print('end of script')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     init_bot()
