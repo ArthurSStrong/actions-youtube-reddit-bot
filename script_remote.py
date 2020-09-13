@@ -102,7 +102,7 @@ def init_bot():
                     title = video['snippet']['title']
                     print("posting {}".format(video_url))
                     reddit.subreddit('lazonacero').submit(title=title,
-                            url=video_url)
+                            url=video_url, flair_id='3a671302-f61b-11ea-96e0-0ef730440ba1')
                     update_file(LOG_FILE, video['id']['videoId'])
         except Exception as e:
             print(e)
