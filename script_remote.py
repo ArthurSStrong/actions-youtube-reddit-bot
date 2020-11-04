@@ -100,6 +100,11 @@ def init_bot():
                     video_url = 'https://www.youtube.com/watch?v=' \
                         + video['id']['videoId']
                     title = video['snippet']['title']
+
+                    #to avoid garbage videos from this specific channel
+                    if channel_id == "UC2sxxXRBL5SgY0fI58BrOCA" and "clip" in title.lower():
+                        continue
+
                     print("posting {}".format(video_url))
                     reddit.subreddit('lazonacero').submit(title=title,
                             url=video_url, flair_id='3a671302-f61b-11ea-96e0-0ef730440ba1')
