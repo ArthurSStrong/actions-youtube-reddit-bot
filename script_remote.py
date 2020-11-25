@@ -5,6 +5,7 @@
 import os
 import requests
 import praw
+import html
 
 CLIENT_ID = os.environ['CLIENT_ID']
 CLIENT_SECRET = os.environ['CLIENT_SECRET']
@@ -100,6 +101,7 @@ def init_bot():
                     video_url = 'https://www.youtube.com/watch?v=' \
                         + video['id']['videoId']
                     title = video['snippet']['title']
+                    title = html.unescape(title) 
 
                     #to avoid garbage videos from this specific channel
                     if channel_id == "UC2sxxXRBL5SgY0fI58BrOCA" and "clip" in title.lower():
